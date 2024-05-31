@@ -1,10 +1,11 @@
 # example.py
-from manim import Code, Scene, Text, LEFT, DOWN, UP, Line, Write, Create, YELLOW, WHITE, FadeIn, FadeOut, ApplyMethod
-from manim_slides.slide import Slide
+from manim import Animation, Scene, Text, LEFT, DOWN, UP, Line, Write, Create, GRAY, YELLOW, WHITE, FadeIn, FadeOut, ApplyMethod
 import re
 
-def CodeText(text):
-    return Text(text, font="JetBrains Mono")
+def CodeText(text, color=WHITE):
+    return Text(text,
+                font="JetBrains Mono",
+                ).set_color(color)
 
 def from_binary_string_to_int(str):
     # sanitize to only contain 0s and 1s
@@ -24,14 +25,26 @@ def int_to_binary_string(num, num_digits, lane_size=4):
 
 print(int_to_binary_string(11, 16, 4))
 
+# highlight appears
+# result appears
+# new carry (if any) appears
+# highlight disappears
+
+
 class BinaryAddition(Scene):
+    def highlight_on(self, *args):
+        self.play ( *[arg.animate.set_color(YELLOW) for arg in args] )
+
+    def highlight_off(self, *args):
+        self.play (*[arg.animate.set_color(WHITE) for arg in args] )
+
     def construct(self):
         # Binary numbers
         num_chars = 8
         lane_size = 4
 
-        a = 11
-        b = 5
+        a = 9 + 16
+        b = 5 + 16 + 32
         c = a + b
 
         a_str = int_to_binary_string(a, num_chars, lane_size)
@@ -52,9 +65,9 @@ class BinaryAddition(Scene):
         self.wait()
 
         # Highlight the binary digits and show the addition process
-        carry = 0
-        carry_text = CodeText("")
-        result_digits = []
+        carry: list[int] = [0]
+        carry_text: list[Text] = [CodeText("")]
+        result_digits: list[list[Text]] = [[]]
 
         for i in range(len(a_str) - 1, -1, -1):
             # Move the carry to the next column
@@ -64,50 +77,51 @@ class BinaryAddition(Scene):
                 next_index -= 1
 
             if not is_digit(a_str[i]) and not is_digit(b_str[i]):
-                result_digits.append(CodeText(c_str[i]).replace(result_bin[i]))
+                result_digits[0].append(CodeText(c_str[i]).replace(result_bin[i]))
                 continue
 
             if not is_digit(a_str[i]) or not is_digit(b_str[i]):
                 raise Exception("Invalid binary number pair formatting")
 
+            is_first_digit = i == len(a_str) - 1
+
             digit1 = int(a_str[i])
             digit2 = int(b_str[i])
-            current_sum = digit1 + digit2 + carry
-            carry = current_sum // 2
+            current_sum = digit1 + digit2 + carry[0]
+            carry[0] = current_sum // 2
 
             digit1_text = bin1[i]
             digit2_text = bin2[i]
 
-            self.play (
-                digit1_text.animate.set_color(YELLOW),
-                digit2_text.animate.set_color(YELLOW),
-            )
-
-            if carry > 0:
-                carry_text = CodeText(str(carry)).next_to(digit1_text, UP)
-                self.play(FadeIn(carry_text))
+            self.highlight_on(digit1_text, digit2_text)
 
             # Draw the column's result
             result_text = CodeText(str(current_sum % 2)).replace(result_bin[i])
-            result_digits.append(result_text)
-            self.play(FadeIn(result_text))
+            result_digits[0].append(result_text)
+
+            animations: list[Animation] = [FadeIn(result_text)]
+
+            creates_carry = carry[0] > 0
+            if creates_carry:
+                carry_text[0] = CodeText(str(carry[0]), GRAY).next_to(digit1_text, UP)
+                animations.append(FadeIn(carry_text[0]))
+
+            self.play(*animations)
+
+            if creates_carry:
+                if next_index >= 0:
+                    next_digit1_text = bin1[next_index]
+                    self.play(ApplyMethod(carry_text[0].next_to, next_digit1_text, UP))
+                else:
+                    self.play(FadeOut(carry_text[0]))
+            else:
+                self.highlight_on(digit1_text, digit2_text)
+
+
+            self.highlight_off(digit1_text, digit2_text)
 
             self.wait()
 
-            self.play(
-                digit1_text.animate.set_color(WHITE),
-                digit2_text.animate.set_color(WHITE),
-            )
 
-            if carry > 0:
-                if next_index >= 0:
-                    next_digit1_text = bin1[next_index]
-                    self.play(ApplyMethod(carry_text.next_to, next_digit1_text, UP))
-                else:
-                    self.play(FadeOut(carry_text))
-
-        # Display the final result
-        self.play(*[FadeOut(digit) for digit in result_digits])
-        self.play(FadeIn(result_bin))
 
         self.wait(2)
