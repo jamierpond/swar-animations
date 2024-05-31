@@ -4,11 +4,16 @@ from manim import Text, LEFT, DOWN, UP, Line, Write, Create, YELLOW, WHITE, Fade
 
 from manim_slides.slide import Slide
 
+
+def CodeText(text):
+    return Text(text, font="JetBrains Mono")
+
+
 class BinaryAddition(Slide):
     def construct(self):
         # Binary numbers
-        num1 = "1011"
-        num2 = "0101"
+        num1 = "01011"
+        num2 = "00101"
 
         # Convert binary numbers to integer
         int1 = int(num1, 2)
@@ -18,14 +23,14 @@ class BinaryAddition(Slide):
         total = int1 + int2
 
         # Display the binary numbers
-        bin1 = Text(num1).shift(UP * 2 + LEFT * 2)
-        bin2 = Text(num2).next_to(bin1, DOWN)
-        plus = Text("+").next_to(bin2, LEFT)
+        bin1 = CodeText(num1).shift(UP * 2 + LEFT * 2)
+        bin2 = CodeText(num2).next_to(bin1, DOWN)
+        plus = CodeText("+").next_to(bin2, LEFT)
         line = Line(bin2.get_left(), bin2.get_right()).next_to(bin2, DOWN)
 
         # Display the result
-        result_bin = Text(bin(total)[2:]).next_to(line, DOWN)
-        result_int = Text(str(total)).next_to(result_bin, DOWN)
+        result_bin = CodeText(bin(total)[2:]).next_to(line, DOWN)
+        result_int = CodeText(str(total)).next_to(result_bin, DOWN)
 
         self.play(Write(bin1), Write(bin2), Write(plus))
         self.play(Create(line))
@@ -46,7 +51,7 @@ class BinaryAddition(Slide):
             carry = current_sum // 2
 
             digit1_text = bin1[i]
-            digit2_text = bin2[i] if i < len(num2) else Text("0").next_to(bin1[i], DOWN)
+            digit2_text = bin2[i] if i < len(num2) else CodeText("0").next_to(bin1[i], DOWN)
 
             self.play(
                 digit1_text.animate.set_color(YELLOW),
@@ -54,7 +59,7 @@ class BinaryAddition(Slide):
             )
 
             if carry > 0:
-                carry_text = Text(str(carry)).next_to(digit1_text, UP)
+                carry_text = CodeText(str(carry)).next_to(digit1_text, UP)
                 self.play(FadeIn(carry_text))
 
             self.wait()
