@@ -32,11 +32,14 @@ print(int_to_binary_string(11, 16, 4))
 
 
 class BinaryAddition(Scene):
-    def highlight_on(self, *args):
-        self.play ( *[arg.animate.set_color(YELLOW) for arg in args] )
+    def make_yellow(self, *args) -> list[Animation]:
+        return [*[arg.animate.set_color(YELLOW) for arg in args]]
 
-    def highlight_off(self, *args):
+    def make_white(self, *args):
         self.play (*[arg.animate.set_color(WHITE) for arg in args] )
+
+    def make_gray(self, *args):
+        self.play (*[arg.animate.set_color(GRAY) for arg in args] )
 
     def construct(self):
         # Binary numbers
@@ -68,6 +71,7 @@ class BinaryAddition(Scene):
         carry: list[int] = [0]
         carry_text: list[Text] = [CodeText("")]
         result_digits: list[list[Text]] = [[]]
+        prev_carry: list[Text] = []
 
         for i in range(len(a_str) - 1, -1, -1):
             # Move the carry to the next column
@@ -83,42 +87,38 @@ class BinaryAddition(Scene):
             if not is_digit(a_str[i]) or not is_digit(b_str[i]):
                 raise Exception("Invalid binary number pair formatting")
 
-            is_first_digit = i == len(a_str) - 1
-
             digit1 = int(a_str[i])
             digit2 = int(b_str[i])
             current_sum = digit1 + digit2 + carry[0]
             carry[0] = current_sum // 2
 
             digit1_text = bin1[i]
+            digit1_text_after = bin1[next_index]
             digit2_text = bin2[i]
+            creates_carry = carry[0] > 0
 
-            self.highlight_on(digit1_text, digit2_text)
+            hl_animations: list[Animation] = [digit1_text.animate.set_color(YELLOW), digit2_text.animate.set_color(YELLOW)]
+            self.play(*hl_animations)
 
             # Draw the column's result
             result_text = CodeText(str(current_sum % 2)).replace(result_bin[i])
             result_digits[0].append(result_text)
 
             animations: list[Animation] = [FadeIn(result_text)]
-
-            creates_carry = carry[0] > 0
             if creates_carry:
-                carry_text[0] = CodeText(str(carry[0]), GRAY).next_to(digit1_text, UP)
+                carry_text[0] = CodeText(str(carry[0]), GRAY).next_to(digit1_text_after, UP)
                 animations.append(FadeIn(carry_text[0]))
 
             self.play(*animations)
 
             if creates_carry:
-                if next_index >= 0:
-                    next_digit1_text = bin1[next_index]
-                    self.play(ApplyMethod(carry_text[0].next_to, next_digit1_text, UP))
-                else:
-                    self.play(FadeOut(carry_text[0]))
+                next_digit1_text = bin1[next_index]
+                self.play(ApplyMethod(carry_text[0].next_to, next_digit1_text, UP))
             else:
-                self.highlight_on(digit1_text, digit2_text)
+                self.make_yellow(digit1_text, digit2_text)
 
 
-            self.highlight_off(digit1_text, digit2_text)
+            self.make_white(digit1_text, digit2_text)
 
             self.wait()
 
