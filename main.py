@@ -1,5 +1,5 @@
 # example.py
-from manim import Animation, Scene, Text, LEFT, DOWN, UP, Line, Write, Create, GRAY, YELLOW, WHITE, FadeIn, FadeOut, ApplyMethod
+from manim import Animation, Scene, Text, LEFT, DOWN, UP, Line, Write, Create, GRAY, YELLOW, WHITE, FadeIn, ApplyMethod
 import re
 
 def CodeText(text, color=WHITE):
@@ -32,15 +32,6 @@ print(int_to_binary_string(11, 16, 4))
 
 
 class BinaryAddition(Scene):
-    def make_yellow(self, *args) -> list[Animation]:
-        return [*[arg.animate.set_color(YELLOW) for arg in args]]
-
-    def make_white(self, *args):
-        self.play (*[arg.animate.set_color(WHITE) for arg in args] )
-
-    def make_gray(self, *args):
-        self.play (*[arg.animate.set_color(GRAY) for arg in args] )
-
     def construct(self):
         # Binary numbers
         num_chars = 8
@@ -71,7 +62,6 @@ class BinaryAddition(Scene):
         carry: list[int] = [0]
         carry_text: list[Text] = [CodeText("")]
         result_digits: list[list[Text]] = [[]]
-        prev_carry: list[Text] = []
 
         for i in range(len(a_str) - 1, -1, -1):
             # Move the carry to the next column
@@ -115,10 +105,10 @@ class BinaryAddition(Scene):
                 next_digit1_text = bin1[next_index]
                 self.play(ApplyMethod(carry_text[0].next_to, next_digit1_text, UP))
             else:
-                self.make_yellow(digit1_text, digit2_text)
+                #self.make_yellow(digit1_text, digit2_text)
+                self.play([digit1_text.animate.set_color(WHITE), digit2_text.animate.set_color(WHITE)])
 
-
-            self.make_white(digit1_text, digit2_text)
+            self.play([digit1_text.animate.set_color(WHITE), digit2_text.animate.set_color(WHITE)])
 
             self.wait()
 
